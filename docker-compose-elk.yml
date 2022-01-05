@@ -1,0 +1,52 @@
+version: '3.9'
+networks:
+  services:
+    name: elk_network
+    external: false
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+       - subnet: 50.0.0.0/16
+       
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}
+    environment:
+      xpack.security.enabled: "true"
+      xpack.license.self_generated.type: "basic"
+      discovery.type: "single-node"
+      ELASTIC_PASSWORD: ${ELASTIC_PASS}
+    ports:
+      - 9200:9200
+    networks: 
+      services:
+        aliases:
+          - elasticsearch.${DOMAIN_NAME}
+          - elasticsearch
+    depends_on:
+      - kibana
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELK_VERSION}
+    environment:
+      - ELASTICSEARCH_USERNAME=${ELASTIC_USER}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASS}
+    ports: ['5601:5601']
+    networks:
+      services:
+        aliases:
+        - kibana.${DOMAIN_NAME}
+        - kibana
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:${ELK_VERSION}
+    user: root
+    volumes:
+      - ${PWD}/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.socks
+    networks:
+      services:
+        aliases:
+          - filebeat
