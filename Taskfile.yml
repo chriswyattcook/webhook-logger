@@ -11,7 +11,15 @@ tasks:
 
   up:
     cmds:
-      - docker-compose up --build webhook-logger
+      - docker-compose -f docker-compose.yml up --build webhook-logger
+      
+  up_elk:
+    cmds:
+      - docker-compose -f docker-compose-elk.yml up -d elasticsearch kibana filebeat
+      
+  down:
+    cmds:
+      - docker-compose down
 
   clean:
     cmds:

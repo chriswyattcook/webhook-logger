@@ -17,11 +17,12 @@ import (
 const port string = ":8080"
 
 var (
-	logger = logrus.New()
+	logger *logrus.Logger
 )
 
 func main() {
-	initLogging()
+	// setup logrus for elastic formatting for filebeat
+	setupLogging()
 
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
@@ -29,7 +30,8 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/ready", health).Methods("GET")
-	router.HandleFunc("/workflow-job/squawk", workflowJobSquawk).Methods("POST")
+	router.HandleFunc("/github/workflow-job/squawk", workflowJobSquawk).Methods("POST")
+	router.HandleFunc("/github/workflow-job", workflowJob).Methods("POST")
 
 	router.Use(loggingMiddleware)
 	router.MethodNotAllowedHandler = MethodNotAllowedHandler()
